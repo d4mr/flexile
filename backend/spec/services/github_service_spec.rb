@@ -799,6 +799,21 @@ RSpec.describe GithubService do
       expect(described_class.send(:extract_linked_issue_numbers, body, owner, repo)).to contain_exactly(1, 2, 3)
     end
 
+    it "extracts issue numbers from 'ref #123' format" do
+      body = "ref #55"
+      expect(described_class.send(:extract_linked_issue_numbers, body, owner, repo)).to eq([55])
+    end
+
+    it "extracts issue numbers from 'refs #123' format" do
+      body = "refs #66"
+      expect(described_class.send(:extract_linked_issue_numbers, body, owner, repo)).to eq([66])
+    end
+
+    it "extracts issue numbers from cross-repo 'ref owner/repo#123' format" do
+      body = "ref antiwork/gumroad#77"
+      expect(described_class.send(:extract_linked_issue_numbers, body, owner, repo)).to eq([77])
+    end
+
     it "extracts issue numbers from cross-repo references" do
       body = "Fixes antiwork/gumroad#123"
       expect(described_class.send(:extract_linked_issue_numbers, body, owner, repo)).to eq([123])

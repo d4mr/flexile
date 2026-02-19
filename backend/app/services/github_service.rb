@@ -345,8 +345,8 @@ class GithubService
       def extract_linked_issue_numbers(body, owner, repo)
         numbers = []
 
-        body.scan(/(?:fix(?:e[sd])?|close[sd]?|resolve[sd]?)\s+#(\d+)/i) { numbers << $1.to_i }
-        body.scan(/(?:fix(?:e[sd])?|close[sd]?|resolve[sd]?)\s+#{Regexp.escape(owner)}\/#{Regexp.escape(repo)}#(\d+)/i) { numbers << $1.to_i }
+        body.scan(/(?:fix(?:e[sd])?|close[sd]?|resolve[sd]?|refs?)\s+#(\d+)/i) { numbers << $1.to_i }
+        body.scan(/(?:fix(?:e[sd])?|close[sd]?|resolve[sd]?|refs?)\s+#{Regexp.escape(owner)}\/#{Regexp.escape(repo)}#(\d+)/i) { numbers << $1.to_i }
         body.scan(/Issue:\s*#(\d+)/i) { numbers << $1.to_i }
         body.scan(%r{https?://github\.com/#{Regexp.escape(owner)}/#{Regexp.escape(repo)}/issues/(\d+)}i) { numbers << $1.to_i }
 
