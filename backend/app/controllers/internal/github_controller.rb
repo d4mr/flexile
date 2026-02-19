@@ -58,6 +58,7 @@ class Internal::GithubController < Internal::BaseController
         github_username: user_info[:username],
         github_access_token: access_token
       )
+      backfill_pr_author_verified(Current.user)
 
       render json: {
         success: true,
@@ -149,6 +150,7 @@ class Internal::GithubController < Internal::BaseController
       github_username: user_info[:username],
       github_access_token: access_token
     )
+    backfill_pr_author_verified(user)
 
     installation_info = GithubService.fetch_installation(installation_id: params[:installation_id])
     return render json: { error: "Could not find the GitHub App installation. Please ensure the app is properly installed and try again." }, status: :unprocessable_entity unless installation_info
@@ -188,5 +190,21 @@ class Internal::GithubController < Internal::BaseController
 
     def github_installation_callback_url
       "#{request.base_url}/github/installation"
+    end
+
+    def backfill_pr_author_verified(user)
+      return if user.github_username.blank?
+
+      InvoiceLineItem
+        .joins(invoice: :company_worker)
+        .where(company_contractors: { user_id: user.id })
+        .where.not(github_pr_author: nil)
+        .where(github_pr_author_verified: nil)
+        .find_each do |line_item|
+          line_item.update_column(
+            :github_pr_author_verified,
+            line_item.github_pr_author.downcase == user.github_username.downcase
+          )
+        end
     end
 end

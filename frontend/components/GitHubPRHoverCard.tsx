@@ -145,61 +145,65 @@ export function GitHubPRHoverCard({
               </div>
             </div>
 
-            <div className="border-border border-t" />
+            {(isAdmin && paidInvoices.length > 0) || isVerified !== null || bountyMismatch ? (
+              <>
+                <div className="border-border border-t" />
 
-            <div className="grid gap-1.5 p-4 pt-3">
-              {isAdmin && paidInvoices.length > 0 ? (
-                <div className="flex items-center gap-1.5 text-sm">
-                  <BadgeDollarSign className="size-4 shrink-0 text-blue-600" />
-                  <span>
-                    <span className="font-medium text-blue-600">Paid</span>
-                    <span className="text-muted-foreground"> on invoice </span>
-                    {paidInvoices.map((invoice, index) => (
-                      <React.Fragment key={invoice.invoiceId}>
-                        {index > 0 && (index === paidInvoices.length - 1 ? " and " : ", ")}
-                        <Link href={`/invoices/${invoice.invoiceId}`} className="text-foreground hover:underline">
-                          #{invoice.invoiceNumber}
-                        </Link>
-                      </React.Fragment>
-                    ))}
-                    .
-                  </span>
-                </div>
-              ) : null}
-
-              {isVerified !== null ? (
-                <div className="flex items-center gap-1.5 text-sm">
-                  {isVerified ? (
-                    <>
-                      <BadgeCheck className="size-4 shrink-0 text-green-600" />
+                <div className="grid gap-1.5 p-4 pt-3">
+                  {isAdmin && paidInvoices.length > 0 ? (
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <BadgeDollarSign className="size-4 shrink-0 text-blue-600" />
                       <span>
-                        <span className="font-medium text-green-600">Verified author</span>
-                        <span className="text-muted-foreground"> of this pull request.</span>
+                        <span className="font-medium text-blue-600">Paid</span>
+                        <span className="text-muted-foreground"> on invoice </span>
+                        {paidInvoices.map((invoice, index) => (
+                          <React.Fragment key={invoice.invoiceId}>
+                            {index > 0 && (index === paidInvoices.length - 1 ? " and " : ", ")}
+                            <Link href={`/invoices/${invoice.invoiceId}`} className="text-foreground hover:underline">
+                              #{invoice.invoiceNumber}
+                            </Link>
+                          </React.Fragment>
+                        ))}
+                        .
                       </span>
-                    </>
-                  ) : (
-                    <>
-                      <BadgeHelp className="text-muted-foreground size-4 shrink-0" />
-                      <span className="text-muted-foreground">Unverified author of this pull request.</span>
-                    </>
-                  )}
-                </div>
-              ) : null}
+                    </div>
+                  ) : null}
 
-              {bountyMismatch ? (
-                <div className="flex items-center gap-1.5 text-sm">
-                  <BadgeDollarSign className="size-4 shrink-0 text-amber-500" />
-                  <span>
-                    <span className="font-medium text-amber-500">Bounty mismatch</span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      — label {formatMoneyFromCents(bountyMismatch.bounty)} vs line{" "}
-                      {formatMoneyFromCents(bountyMismatch.lineTotal)}
-                    </span>
-                  </span>
+                  {isVerified !== null ? (
+                    <div className="flex items-center gap-1.5 text-sm">
+                      {isVerified ? (
+                        <>
+                          <BadgeCheck className="size-4 shrink-0 text-green-600" />
+                          <span>
+                            <span className="font-medium text-green-600">Verified author</span>
+                            <span className="text-muted-foreground"> of this pull request.</span>
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <BadgeHelp className="text-muted-foreground size-4 shrink-0" />
+                          <span className="text-muted-foreground">Unverified author of this pull request.</span>
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {bountyMismatch ? (
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <BadgeDollarSign className="size-4 shrink-0 text-amber-500" />
+                      <span>
+                        <span className="font-medium text-amber-500">Bounty mismatch</span>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          — label {formatMoneyFromCents(bountyMismatch.bounty)} vs line{" "}
+                          {formatMoneyFromCents(bountyMismatch.lineTotal)}
+                        </span>
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
+              </>
+            ) : null}
           </div>
         </HoverCardPrimitive.Content>
       </HoverCardPrimitive.Portal>
