@@ -293,6 +293,7 @@ export const invoicesRouter = createRouter({
             githubPrAuthor: true,
             githubPrRepo: true,
             githubPrBountyCents: true,
+            githubPrAuthorVerified: true,
           },
         },
         expenses: { columns: { id: true, totalAmountInCents: true, description: true, expenseCategoryId: true } },

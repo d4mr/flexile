@@ -17,6 +17,7 @@ interface GitHubPRLineItemProps {
   onClick?: () => void;
   className?: string;
   currentUserGitHubUsername?: string | null;
+  authorVerified?: boolean | null;
   paidInvoices?: PaidInvoiceInfo[];
   showStatusDot?: boolean;
   hoverCardEnabled?: boolean;
@@ -29,6 +30,7 @@ export function GitHubPRLineItem({
   onClick,
   className,
   currentUserGitHubUsername,
+  authorVerified,
   paidInvoices = [],
   showStatusDot = false,
   hoverCardEnabled = true,
@@ -82,6 +84,7 @@ export function GitHubPRLineItem({
     <GitHubPRHoverCard
       pr={pr}
       currentUserGitHubUsername={currentUserGitHubUsername}
+      authorVerified={authorVerified}
       paidInvoices={paidInvoices}
       enabled={hoverCardEnabled}
     >

@@ -13,6 +13,7 @@ class InvoiceLineItem < ApplicationRecord
     github_pr_bounty_cents
     github_linked_issue_number
     github_linked_issue_repo
+    github_pr_author_verified
   ].freeze
 
   belongs_to :invoice

@@ -545,6 +545,95 @@ test.describe("GitHub integration", () => {
       await expect(page.getByText("Unverified author of this pull request.")).toBeVisible({ timeout: 5000 });
     });
 
+    test("shows verified status from persisted field even after contractor disconnects GitHub", async ({ page }) => {
+      const { company, adminUser } = await companiesFactory.createCompletedOnboarding();
+      const { user } = await usersFactory.create({
+        // Contractor has disconnected from GitHub (no github_uid/username)
+        githubUid: null,
+        githubUsername: null,
+      });
+      const { companyContractor } = await companyContractorsFactory.create({
+        companyId: company.id,
+        userId: user.id,
+        payRateInSubunits: 25000,
+      });
+
+      const { invoice } = await invoicesFactory.create({
+        companyContractorId: companyContractor.id,
+        invoiceNumber: `INV-PERSIST-${faker.string.alphanumeric(6)}`,
+      });
+
+      // Simulate an invoice created while the contractor was still connected:
+      // githubPrAuthorVerified was set to true at creation time
+      await db
+        .update(invoiceLineItems)
+        .set({
+          description: "https://github.com/antiwork/flexile/pull/50",
+          githubPrUrl: "https://github.com/antiwork/flexile/pull/50",
+          githubPrNumber: 50,
+          githubPrTitle: "Add dashboard feature",
+          githubPrState: "merged",
+          githubPrAuthor: "formeruser",
+          githubPrRepo: "antiwork/flexile",
+          githubPrAuthorVerified: true,
+        })
+        .where(eq(invoiceLineItems.invoiceId, invoice.id));
+
+      await login(page, adminUser, "/people");
+      await page.getByRole("link", { name: "Invoices" }).click();
+      await page.getByRole("row", { name: new RegExp(user.legalName ?? "", "u") }).click();
+
+      const prLink = page.getByRole("link", { name: /antiwork\/flexile.*#50/u });
+      await prLink.hover();
+
+      // Should still show "Verified author" using the persisted field, not the live GitHub username
+      await expect(page.getByText("Verified author of this pull request.")).toBeVisible({ timeout: 5000 });
+    });
+
+    test("shows unverified status from persisted field even after contractor disconnects GitHub", async ({ page }) => {
+      const { company, adminUser } = await companiesFactory.createCompletedOnboarding();
+      const { user } = await usersFactory.create({
+        githubUid: null,
+        githubUsername: null,
+      });
+      const { companyContractor } = await companyContractorsFactory.create({
+        companyId: company.id,
+        userId: user.id,
+        payRateInSubunits: 25000,
+      });
+
+      const { invoice } = await invoicesFactory.create({
+        companyContractorId: companyContractor.id,
+        invoiceNumber: `INV-UNPER-${faker.string.alphanumeric(6)}`,
+      });
+
+      // Simulate an invoice where the PR author didn't match the contractor:
+      // githubPrAuthorVerified was set to false at creation time
+      await db
+        .update(invoiceLineItems)
+        .set({
+          description: "https://github.com/antiwork/flexile/pull/51",
+          githubPrUrl: "https://github.com/antiwork/flexile/pull/51",
+          githubPrNumber: 51,
+          githubPrTitle: "Someone else's contribution",
+          githubPrState: "merged",
+          githubPrAuthor: "differentdev",
+          githubPrRepo: "antiwork/flexile",
+          githubPrAuthorVerified: false,
+        })
+        .where(eq(invoiceLineItems.invoiceId, invoice.id));
+
+      await login(page, adminUser, "/people");
+      await page.getByRole("link", { name: "Invoices" }).click();
+      await page.getByRole("row", { name: new RegExp(user.legalName ?? "", "u") }).click();
+
+      const prLink = page.getByRole("link", { name: /antiwork\/flexile.*#51/u });
+      await prLink.hover();
+
+      // Should still show "Unverified author" using the persisted field
+      await expect(page.getByText("Unverified author of this pull request.")).toBeVisible({ timeout: 5000 });
+    });
+
     test("shows amber status dot for unverified PRs on pending invoices", async ({ page }) => {
       const { company, adminUser } = await companiesFactory.createCompletedOnboarding();
       const { user } = await usersFactory.create({

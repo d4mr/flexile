@@ -39,6 +39,7 @@ export interface PaidInvoiceInfo {
 export interface GitHubPRHoverCardProps {
   pr: PRDetails;
   currentUserGitHubUsername?: string | null | undefined;
+  authorVerified?: boolean | null | undefined;
   paidInvoices?: PaidInvoiceInfo[];
   lineItemTotal?: number | null;
   children: React.ReactNode;
@@ -48,6 +49,7 @@ export interface GitHubPRHoverCardProps {
 export function GitHubPRHoverCard({
   pr,
   currentUserGitHubUsername,
+  authorVerified,
   paidInvoices = [],
   lineItemTotal,
   children,
@@ -83,9 +85,15 @@ export function GitHubPRHoverCard({
     return children;
   }
 
-  const isVerified = currentUserGitHubUsername
-    ? pr.author.toLowerCase() === currentUserGitHubUsername.toLowerCase()
-    : null;
+  // Prefer the persisted verification status (set at invoice creation time) so it
+  // survives the contractor disconnecting from GitHub. Fall back to a live comparison
+  // for older line items that don't have the field populated yet.
+  const isVerified =
+    authorVerified !== undefined && authorVerified !== null
+      ? authorVerified
+      : currentUserGitHubUsername
+        ? pr.author.toLowerCase() === currentUserGitHubUsername.toLowerCase()
+        : null;
 
   const bountyMismatch =
     pr.bounty_cents != null && lineItemTotal != null && pr.bounty_cents !== lineItemTotal

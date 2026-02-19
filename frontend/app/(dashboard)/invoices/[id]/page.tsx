@@ -354,11 +354,12 @@ export default function InvoicePage() {
                             }
                           : null;
 
-                        const contractorGithubUsername = invoice.contractor.user.githubUsername;
                         const isVerified =
-                          hasPR && contractorGithubUsername
-                            ? prDetails?.author.toLowerCase() === contractorGithubUsername.toLowerCase()
-                            : null;
+                          hasPR && lineItem.githubPrAuthorVerified !== null
+                            ? lineItem.githubPrAuthorVerified
+                            : hasPR && invoice.contractor.user.githubUsername
+                              ? prDetails?.author.toLowerCase() === invoice.contractor.user.githubUsername.toLowerCase()
+                              : null;
 
                         const paidInvoices = lineItem.paidInvoices.map((inv) => ({
                           invoiceId: inv.invoiceId,
@@ -383,7 +384,7 @@ export default function InvoicePage() {
                                   <div className="print:hidden">
                                     <GitHubPRHoverCard
                                       pr={prDetails}
-                                      currentUserGitHubUsername={contractorGithubUsername}
+                                      authorVerified={isVerified}
                                       paidInvoices={paidInvoices}
                                       lineItemTotal={total}
                                     >

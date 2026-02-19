@@ -753,6 +753,7 @@ export const invoiceLineItems = pgTable(
     githubPrAuthor: varchar("github_pr_author"),
     githubPrRepo: varchar("github_pr_repo"),
     githubPrBountyCents: integer("github_pr_bounty_cents"),
+    githubPrAuthorVerified: boolean("github_pr_author_verified"),
     githubLinkedIssueNumber: integer("github_linked_issue_number"),
     githubLinkedIssueRepo: varchar("github_linked_issue_repo"),
   },

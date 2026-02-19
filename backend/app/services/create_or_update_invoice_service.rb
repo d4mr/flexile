@@ -155,6 +155,9 @@ class CreateOrUpdateInvoiceService
         )
 
         if pr_details
+          author_verified = user.github_username.present? &&
+            pr_details[:author].downcase == user.github_username.downcase
+
           line_item.assign_attributes(
             github_pr_url: pr_details[:url],
             github_pr_number: pr_details[:number],
@@ -165,6 +168,7 @@ class CreateOrUpdateInvoiceService
             github_pr_bounty_cents: pr_details[:bounty_cents],
             github_linked_issue_number: pr_details[:linked_issue_number],
             github_linked_issue_repo: pr_details[:linked_issue_repo],
+            github_pr_author_verified: author_verified,
           )
         end
       rescue GithubService::ApiError => e

@@ -856,6 +856,62 @@ RSpec.describe CreateOrUpdateInvoiceService do
         expect(line_item.github_pr_number).to be_nil
       end
 
+      it "sets github_pr_author_verified to true when PR author matches contractor's GitHub username" do
+        user.update!(github_username: "developer")
+
+        expect(GithubService).to receive(:valid_pr_url?).with(pr_url).and_return(true)
+        expect(GithubService).to receive(:parse_pr_url).with(pr_url).and_return({ owner: "acme-org", repo: "project", pr_number: 123 })
+        expect(GithubService).to receive(:fetch_pr_details_from_url).with(org_name: "acme-org", url: pr_url).and_return(pr_details)
+
+        result = invoice_service.process
+        expect(result[:success]).to be(true)
+
+        line_item = result[:invoice].invoice_line_items.first
+        expect(line_item.github_pr_author_verified).to be(true)
+      end
+
+      it "sets github_pr_author_verified to false when PR author does not match contractor's GitHub username" do
+        user.update!(github_username: "someone-else")
+
+        expect(GithubService).to receive(:valid_pr_url?).with(pr_url).and_return(true)
+        expect(GithubService).to receive(:parse_pr_url).with(pr_url).and_return({ owner: "acme-org", repo: "project", pr_number: 123 })
+        expect(GithubService).to receive(:fetch_pr_details_from_url).with(org_name: "acme-org", url: pr_url).and_return(pr_details)
+
+        result = invoice_service.process
+        expect(result[:success]).to be(true)
+
+        line_item = result[:invoice].invoice_line_items.first
+        expect(line_item.github_pr_author_verified).to be(false)
+      end
+
+      it "sets github_pr_author_verified to false when contractor has no GitHub username" do
+        user.update!(github_username: nil)
+
+        expect(GithubService).to receive(:valid_pr_url?).with(pr_url).and_return(true)
+        expect(GithubService).to receive(:parse_pr_url).with(pr_url).and_return({ owner: "acme-org", repo: "project", pr_number: 123 })
+        expect(GithubService).to receive(:fetch_pr_details_from_url).with(org_name: "acme-org", url: pr_url).and_return(pr_details)
+
+        result = invoice_service.process
+        expect(result[:success]).to be(true)
+
+        line_item = result[:invoice].invoice_line_items.first
+        expect(line_item.github_pr_author_verified).to be(false)
+      end
+
+      it "handles case-insensitive github_pr_author_verified comparison" do
+        user.update!(github_username: "Developer") # Different case from pr_details[:author] which is "developer"
+
+        expect(GithubService).to receive(:valid_pr_url?).with(pr_url).and_return(true)
+        expect(GithubService).to receive(:parse_pr_url).with(pr_url).and_return({ owner: "acme-org", repo: "project", pr_number: 123 })
+        expect(GithubService).to receive(:fetch_pr_details_from_url).with(org_name: "acme-org", url: pr_url).and_return(pr_details)
+
+        result = invoice_service.process
+        expect(result[:success]).to be(true)
+
+        line_item = result[:invoice].invoice_line_items.first
+        expect(line_item.github_pr_author_verified).to be(true)
+      end
+
       it "handles case-insensitive org name comparison" do
         company.update!(github_org_name: "ACME-ORG")
 
