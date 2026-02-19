@@ -231,6 +231,34 @@ RSpec.describe Internal::GithubController do
       json_response = response.parsed_body
       expect(json_response["error"]).to eq("GitHub authentication failed. Please try again.")
     end
+
+    it "backfills github_pr_author_verified on existing invoice line items" do
+      company = create(:company)
+      contractor = create(:company_worker, company: company, user: user)
+      invoice = create(:invoice, company: company, user: user, company_worker: contractor)
+      line_item = create(:invoice_line_item, invoice: invoice, github_pr_author: "testuser", github_pr_author_verified: nil)
+      other_line_item = create(:invoice_line_item, invoice: invoice, github_pr_author: "someoneelse", github_pr_author_verified: nil)
+
+      stub_request(:post, "https://github.com/login/oauth/access_token")
+        .to_return(
+          status: 200,
+          body: { access_token: "gho_test_token" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+      stub_request(:get, "https://api.github.com/user")
+        .to_return(
+          status: 200,
+          body: { id: 12345, login: "testuser" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+        )
+
+      post :callback, params: { code: "test_code", state: oauth_state }
+
+      expect(response).to have_http_status(:ok)
+      expect(line_item.reload.github_pr_author_verified).to be(true)
+      expect(other_line_item.reload.github_pr_author_verified).to be(false)
+    end
   end
 
   describe "DELETE #disconnect" do
